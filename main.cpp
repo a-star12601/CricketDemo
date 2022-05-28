@@ -2,11 +2,13 @@
 #include<windows.h>
 #include<mmsystem.h>
 #include<stdio.h>
+#include<string.h>
+#include "letters.h"
 
 void display();
 void display2();
 void reshape(int,int);
-
+int score=6,wick=0;
 void timer(int);
 void mySpecialFunc(int,int, int);
 void drawText(int x,int y,char text[],int len);
@@ -22,6 +24,10 @@ int disp=0,barm=0,actarm=0;
 float dist=40,jump=0;
 float f1=0, f2=0.023, f3=0.839;
 
+int c=0,df=0;
+float angle=0;
+float arm=0;
+char buf[12];
 void init(void)
 {
 GLfloat mat_specular[] = { 1,1,1,1};
@@ -51,7 +57,6 @@ int main(int argc,char**argv){
     glutInitWindowSize(1200,700);
 
     glutCreateWindow("Cricket Project");
-
     glutReshapeFunc(reshape);
     glutSpecialFunc(mySpecialFunc);
     glutKeyboardFunc(keys);
@@ -111,7 +116,8 @@ void processMenuEvents(int option) {
 	}
 }
 int scene=0;
-
+int shot=0;
+float y=0,z=0;
 void keys(unsigned char key,int x,int y ){
     if(key==13){
     switch(scene){
@@ -143,6 +149,42 @@ void keys(unsigned char key,int x,int y ){
     default:exit(0);
     }
      glutPostRedisplay();
+     }
+    else if(key=='1'){
+    y=0,z=0,arm=0,df=0,dist=40;
+    scene=2;
+    shot=1;
+    score+=4;
+    glutDisplayFunc(display);
+    //glutTimerFunc(0,timer,0);
+    glutPostRedisplay();
+     }
+    else if(key=='2'){
+    y=0,z=0,arm=0,df=0,dist=40,angle=0;
+    scene=2;
+    shot=2;
+    score+=4;
+    glutDisplayFunc(display);
+    //glutTimerFunc(0,timer,0);
+    glutPostRedisplay();
+     }
+    else if(key=='3'){
+    y=0,z=0,arm=0,df=0,dist=40;
+    scene=2;
+    shot=3;
+    score+=4;
+    glutDisplayFunc(display);
+    //glutTimerFunc(0,timer,0);
+    glutPostRedisplay();
+     }
+    else if(key=='4'){
+    y=0,z=0,arm=0,df=0,dist=40;
+    scene=2;
+    shot=4;
+    wick++;
+    glutDisplayFunc(display);
+    //glutTimerFunc(0,timer,0);
+    glutPostRedisplay();
      }
 }
 
@@ -226,10 +268,6 @@ glMatrixMode( GL_MODELVIEW );
 
 
 
-
-
-float angle=0;
-float arm=0;
 
 void objectaxis(){                      // show the axes for the object
     glPushMatrix();                     //reference axis
@@ -417,7 +455,7 @@ glPushMatrix();             //BATSMAN left thigh
 
         }
 
-int shot=0;
+
 void playerrotate(float c1,float c2,float c3,int f){
         glColor3f(c1,c2,c3);
 glPushMatrix();             //BATSMAN shoulderchest
@@ -633,7 +671,6 @@ void mySpecialFunc(int key, int x, int y){
 	}
 	glutPostRedisplay();
 }
-float y=0,z=0;
 void display(){
     init();
     glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
@@ -649,6 +686,11 @@ void display(){
             glVertex3f(50,-50,0);
             glVertex3f(-50,-50,0);
         glEnd();
+    glPopMatrix();
+    glPushMatrix();
+    glColor3f(1,1,1);
+    snprintf(buf, 12, "Score:%d/%d",score,wick);
+    drawText(620,650,buf,12);
     glPopMatrix();
     glTranslatef(0,-topangle,0);
     glPushMatrix();                                     //stands
@@ -696,6 +738,8 @@ void display(){
         glTranslatef(0.2,1.5,.1);
         if(shot==1)
             glRotatef(-60,0,1,0);
+        else if(shot==2)
+            glRotatef(60,0,1,0);
         glRotatef(arm,-0.5, 1.0, 0);
         glTranslatef(-0.2,-1.5,-0.1);
         playerrotate(0, 0.439, 0.921,0);
@@ -729,8 +773,12 @@ void display(){
     glPopMatrix();
     wicket(-15);
     wicket(95);
+    glPushMatrix();
+    if(shot==4&&z>-13&&z<-11)
+        glTranslatef(0,z*-0.01,0);
     bails(-1.5);
     bails(9.5);
+    glPopMatrix();
     umpire();
     glColor3f(f1,f2,f3);
     fielder(0,0,-5,90,0,1,0);
@@ -746,15 +794,30 @@ void display(){
 
     glPushMatrix();
     glTranslatef(0,1,10);
-    if(z>-9.5)
-        glTranslatef(0,y,z);
-    else
+    if(z>-9.5){
+        if(shot==2)
+            glTranslatef(0.8,0,0);
+        if(shot==1)
+            glTranslatef(-0.3,0,0);
+        glTranslatef(0,-0.18,z);
+    }
+    else{
         if(shot==1)
         glTranslatef(9.5+z,-0.2,-18.4-z);
-        else
+        else if(shot==0)
         glTranslatef(-9.5-z,y,-18.4-z);
+        else if(shot==2)
+        glTranslatef(-9.5-z,-0.2,z);
+        if(shot==3)
+        glTranslatef(-9.5-z,-0.2,-18.4-z);
+        if(shot==4){
+        glTranslatef(0,-0.7,z);
+
+        }
+    }
     glColor3f(1,1,1);
     glutSolidSphere(0.15,10,10);
+    //objectaxis();
     glEnd();
     glPopMatrix();
 
@@ -773,28 +836,24 @@ glViewport(0,0,w,h);
 }
 
 
-int c=0,df=0;
 void timer(int){
-     /*
-     if(df==1&&arm<=60){
-        y=0,z=0,arm=0,df=0,dist=40;
-
-        glutPostRedisplay();
-    }
-    else{
-    */
+    int lim;
     glutPostRedisplay();
     glutTimerFunc(1000/60,timer,0);
+    if(shot==0)
+        lim=160;
+    else if(shot==1)
+        lim=200;
     c+=1;
     if(c%15==0)
     audhand*=-1;
     z-=0.3;
- if(z>-9.5){
+    if(z>-9.5){
     y-=0.02;
     }
     else if(y<8){
         y+=0.2;
-        if (angle< 160)
+        if(angle< 160)
         angle += 5;
     }
     if(df==0)
